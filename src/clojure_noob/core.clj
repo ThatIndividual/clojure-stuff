@@ -1,42 +1,45 @@
 (ns clojure-noob.core
   (:gen-class))
 
-(def asym-hobbit-body-parts [{:name "head" :size 3}
-                             {:name "left-eye" :size 1}
-                             {:name "left-ear" :size 1}
+(def asym-alien-body-parts [{:name "head" :size 5}
                              {:name "mouth" :size 1}
-                             {:name "nose" :size 1}
                              {:name "neck" :size 2}
-                             {:name "left-shoulder" :size 3}
-                             {:name "left-upper-arm" :size 3}
-                             {:name "chest" :size 10}
-                             {:name "back" :size 10}
-                             {:name "left-forearm" :size 3}
+                             {:name "left-eye" :size 1}
+                             {:name "first-upper-tentacle" :size 3}
+                             {:name "first-lower-tentacle" :size 3}
+                             {:name "thorax" :size 10}
                              {:name "abdomen" :size 6}
-                             {:name "left-kidney" :size 1}
-                             {:name "left-hand" :size 2}
-                             {:name "left-knee" :size 2}
-                             {:name "left-thigh" :size 4}
-                             {:name "left-lower-leg" :size 3}
-                             {:name "left-achilles" :size 1}
-                             {:name "left-foot" :size 2}])
+                             {:name "first-knee" :size 2}
+                             {:name "first-thigh" :size 4}
+                             {:name "first-lower-leg" :size 3}
+                             {:name "first-achilles" :size 1}
+                             {:name "first-foot" :size 2}])
 
-(defn matching-part
-  [part]
-  {:name (clojure.string/replace (:name part) #"^left-" "right-")
-   :size (:size part)})
+(defn matching-parts
+  [{:keys [name size] :as part}]
+    (if (clojure.string/starts-with? name "first-")
+      (let [part-name-root (clojure.string/replace name #"first-" "")]
+        [part,
+         {:name (str "second-" part-name-root)
+          :size size}
+         {:name (str "third-" part-name-root)
+          :size size}
+         {:name (str "fourth-" part-name-root)
+          :size size}
+         {:name (str "fifth-" part-name-root)
+          :size size}])
+      [part]))
 
-(defn better-symmetrize-body-parts
-  "Expects a seq of maps that have a :name and :size"
-  [asym-body-parts]
-  (reduce (fn [final-body-parts part]
-            (into final-body-parts (set [part (matching-part part)])))
+(defn symmetrize-body-parts
+  [parts]
+  (reduce (fn [final-parts part]
+            (into final-parts (matching-parts part)))
           []
-          asym-body-parts))
+          parts))
 
 (defn hit
   [asym-body-parts]
-  (let [sym-parts (better-symmetrize-body-parts asym-body-parts)
+  (let [sym-parts (symmetrize-body-parts asym-body-parts)
         body-part-size-sum (reduce + (map :size sym-parts))
         target (rand body-part-size-sum)]
     (loop [[part & remaining] sym-parts
@@ -45,16 +48,7 @@
         part
         (recur remaining (+ accumulated-size (:size (first remaining))))))))
 
-(defn hit-n-times
-  [n]
-  (loop [i (dec n)]
-    (println (hit asym-hobbit-body-parts))
-    (if (not= i 0)
-      (recur (dec i)))))
-
 (defn -main
   "I don't do a whole lot ... yet."
-  ([]
-   (-main 1))
-  ([i]
-   (hit-n-times (Integer. i))))
+  [& args]
+  (println (hit asym-alien-body-parts)))
